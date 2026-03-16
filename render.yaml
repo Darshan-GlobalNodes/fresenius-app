@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: fresenius-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+
+    envVars:
+      # ── Non-secret config (safe to store here) ────────────────────────────
+      - key: LLM_PROVIDER
+        value: bedrock
+      - key: BEDROCK_MODEL_ID
+        value: us.anthropic.claude-sonnet-4-20250514-v1:0
+      - key: AWS_REGION
+        value: us-east-1
+      - key: AWS_SERVICE_NAME
+        value: bedrock-runtime
+
+      # ── Secrets — set these in the Render dashboard (not here) ────────────
+      - key: GOOGLE_CLIENT_ID
+        sync: false          # means: "I'll paste this in the dashboard"
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false          # set to: https://<your-app>.onrender.com/auth/callback
+      - key: SECRET_KEY
+        sync: false          # run: python3 -c "import secrets; print(secrets.token_hex(32))"
+      - key: WHITELISTED_EMAILS
+        sync: false          # e.g. darshan.kholakiya@globalnodes.ai
+      - key: TAVILY_API_KEY
+        sync: false          # optional

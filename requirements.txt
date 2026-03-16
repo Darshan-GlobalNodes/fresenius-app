@@ -1,0 +1,32 @@
+# Web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# Auth & HTTP
+httpx>=0.27.0
+PyJWT>=2.8.0
+python-dotenv>=1.0.0
+
+# AI / LangGraph (LangChain 1.x stack)
+langchain>=1.0.0
+langchain-core>=1.0.0
+langchain-community>=0.3.0
+langchain-anthropic>=0.3.0
+langgraph>=0.2.0
+
+# Search tools
+langchain-tavily>=0.1.0      # optional — set TAVILY_API_KEY to enable
+
+# AWS Bedrock (optional — only needed if LLM_PROVIDER=bedrock)
+boto3>=1.34.0
+langchain-aws>=0.1.0        # recommended Bedrock client (ChatBedrockConverse for tool-calling)
+
+# Data
+pandas>=2.1.0
+openpyxl>=3.1.0
+sqlalchemy>=2.0.0
+
+# PubMed / misc
+xmltodict>=0.13.0
+duckduckgo-search>=6.0.0

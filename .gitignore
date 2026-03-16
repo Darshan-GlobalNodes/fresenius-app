@@ -1,0 +1,33 @@
+# ── Secrets — NEVER commit these ─────────────────────────────────────────────
+.env
+
+# ── Generated database (recreated from Excel on startup) ─────────────────────
+data/fresenius.db
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Claude ────────────────────────────────────────────────────────────────────
+.claude/
