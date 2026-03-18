@@ -1,0 +1,87 @@
+service: fresenius-ai-assistant
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: us-east-1
+  stage: ${opt:stage, 'prod'}
+  timeout: 900  # 15 minutes
+  memorySize: 2048
+
+  environment:
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+    GOOGLE_REDIRECT_URI: ${env:GOOGLE_REDIRECT_URI}
+    SECRET_KEY: ${env:SECRET_KEY}
+    WHITELISTED_EMAILS: ${env:WHITELISTED_EMAILS}
+    LLM_PROVIDER: bedrock
+    AWS_REGION: ${self:provider.region}
+    AWS_SERVICE_NAME: bedrock-runtime
+    BEDROCK_MODEL_ID: ${env:BEDROCK_MODEL_ID, 'us.anthropic.claude-sonnet-4-20250514-v1:0'}
+    TAVILY_API_KEY: ${env:TAVILY_API_KEY, ''}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+          Resource: '*'
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: '*'
+
+functions:
+  api:
+    handler: lambda_handler.lambda_handler
+    events:
+      - httpApi:
+          path: '/{proxy+}'
+          method: ANY
+      - httpApi:
+          path: '/'
+          method: ANY
+
+  websocket:
+    handler: websocket_handler.lambda_handler
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    layer: true
+    slim: true
+    strip: false
+    zip: true
+    useStaticCache: true
+    useDownloadCache: true
+    cacheLocation: ".serverless/cache"
+
+package:
+  exclude:
+    - .git/**
+    - .vscode/**
+    - .idea/**
+    - __pycache__/**
+    - .pytest_cache/**
+    - .env
+    - .env.example
+    - '*.md'
+    - render.yaml
+    - static/**
+    - node_modules/**
+    - venv/**
+    - env/**

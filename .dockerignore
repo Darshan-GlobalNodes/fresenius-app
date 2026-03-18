@@ -1,0 +1,20 @@
+# Exclude unnecessary files from Lambda deployment
+.git
+.gitignore
+.env
+.env.example
+README.md
+render.yaml
+*.md
+__pycache__
+*.pyc
+.pytest_cache
+.vscode
+.idea
+.DS_Store
+node_modules
+venv
+env
+*.db
+data/*.xlsx
+static/

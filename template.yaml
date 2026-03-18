@@ -1,0 +1,233 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Fresenius AI Assistant - Lambda Deployment
+
+Globals:
+  Function:
+    Timeout: 900  # 15 minutes max for Lambda
+    MemorySize: 2048
+    Runtime: python3.11
+    Environment:
+      Variables:
+        # OAuth
+        GOOGLE_CLIENT_ID: !Ref GoogleClientId
+        GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
+        GOOGLE_REDIRECT_URI: !Sub 'https://${FreseiniusApi}.execute-api.${AWS::Region}.amazonaws.com/auth/callback'
+
+        # Security
+        SECRET_KEY: !Ref SecretKey
+        WHITELISTED_EMAILS: !Ref WhitelistedEmails
+
+        # AWS Bedrock
+        LLM_PROVIDER: bedrock
+        AWS_REGION: !Ref AWS::Region
+        AWS_SERVICE_NAME: bedrock-runtime
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+
+        # Optional
+        TAVILY_API_KEY: !Ref TavilyApiKey
+
+Parameters:
+  GoogleClientId:
+    Type: String
+    Description: Google OAuth Client ID
+
+  GoogleClientSecret:
+    Type: String
+    Description: Google OAuth Client Secret
+    NoEcho: true
+
+  SecretKey:
+    Type: String
+    Description: JWT Secret Key
+    NoEcho: true
+
+  WhitelistedEmails:
+    Type: String
+    Description: Comma-separated list of allowed email addresses
+
+  BedrockModelId:
+    Type: String
+    Default: us.anthropic.claude-sonnet-4-20250514-v1:0
+    Description: AWS Bedrock Model ID
+
+  TavilyApiKey:
+    Type: String
+    Default: ''
+    Description: Tavily API Key (optional)
+    NoEcho: true
+
+Resources:
+  FreseiniusApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowHeaders:
+          - '*'
+        AllowMethods:
+          - '*'
+        AllowCredentials: true
+
+  FreseiniusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fresenius-ai-assistant
+      CodeUri: .
+      Handler: lambda_handler.lambda_handler
+      Description: Fresenius AI Assistant API
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FreseiniusApi
+            Path: /{proxy+}
+            Method: ANY
+        RootEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FreseiniusApi
+            Path: /
+            Method: ANY
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
+      Layers:
+        - !Ref DependenciesLayer
+
+  # WebSocket API for real-time chat
+  FreseiniusWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: fresenius-websocket-api
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  WebSocketConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${WebSocketConnectIntegration}
+
+  WebSocketDisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${WebSocketDisconnectIntegration}
+
+  WebSocketDefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      RouteKey: $default
+      AuthorizationType: NONE
+      Target: !Sub integrations/${WebSocketDefaultIntegration}
+
+  WebSocketConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketFunction.Arn}/invocations
+
+  WebSocketDisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketFunction.Arn}/invocations
+
+  WebSocketDefaultIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketFunction.Arn}/invocations
+
+  WebSocketFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fresenius-websocket-handler
+      CodeUri: .
+      Handler: websocket_handler.lambda_handler
+      Timeout: 900
+      MemorySize: 2048
+      Runtime: python3.11
+      Environment:
+        Variables:
+          SECRET_KEY: !Ref SecretKey
+          LLM_PROVIDER: bedrock
+          AWS_REGION: !Ref AWS::Region
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+              - execute-api:ManageConnections
+            Resource: '*'
+      Layers:
+        - !Ref DependenciesLayer
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - WebSocketConnectRoute
+      - WebSocketDisconnectRoute
+      - WebSocketDefaultRoute
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref FreseiniusWebSocketApi
+      DeploymentId: !Ref WebSocketDeployment
+      StageName: prod
+
+  WebSocketFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WebSocketFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FreseiniusWebSocketApi}/*
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: fresenius-dependencies
+      Description: Python dependencies for Fresenius AI Assistant
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${FreseiniusApi}.execute-api.${AWS::Region}.amazonaws.com/'
+
+  WebSocketUrl:
+    Description: WebSocket API endpoint URL
+    Value: !Sub 'wss://${FreseiniusWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt FreseiniusFunction.Arn
+
+  WebSocketFunctionArn:
+    Description: WebSocket Lambda Function ARN
+    Value: !GetAtt WebSocketFunction.Arn

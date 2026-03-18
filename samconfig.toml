@@ -1,0 +1,21 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "fresenius-ai-assistant"
+s3_prefix = "fresenius-ai-assistant"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = [
+    "GoogleClientId=YOUR_GOOGLE_CLIENT_ID",
+    "GoogleClientSecret=YOUR_GOOGLE_CLIENT_SECRET",
+    "SecretKey=YOUR_SECRET_KEY",
+    "WhitelistedEmails=email1@example.com,email2@example.com",
+    "BedrockModelId=us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "TavilyApiKey="
+]
+
+[default.build]
+[default.build.parameters]
+use_container = true

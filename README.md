@@ -321,7 +321,30 @@ TAVILY_API_KEY=your_tavily_key
 
 ---
 
-## Deployment (Render.com)
+## Deployment Options
+
+### Option 1: AWS Lambda (Serverless - Recommended)
+
+Deploy as serverless AWS Lambda functions with API Gateway.
+
+**Quick Start:**
+```bash
+./deploy.sh
+```
+
+**Benefits:**
+- Automatic scaling
+- Pay only for what you use
+- No server management
+- Native AWS Bedrock integration
+- Can be invoked from other AWS services
+
+**Documentation:**
+- [Quick Start Guide](./QUICK_START_LAMBDA.md)
+- [Full Deployment Guide](./LAMBDA_DEPLOYMENT.md)
+- [Migration Summary](./LAMBDA_MIGRATION_SUMMARY.md)
+
+### Option 2: Render.com (Traditional Server)
 
 1. Push code to GitHub
 2. Create a new **Web Service** on [render.com](https://render.com) from your GitHub repo

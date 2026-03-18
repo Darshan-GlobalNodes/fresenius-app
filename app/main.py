@@ -34,6 +34,13 @@ _thread_pool = ThreadPoolExecutor(max_workers=10)
 async def startup():
     setup_database()
 
+# Initialize database on module load for Lambda cold starts
+# This ensures the database is ready before the first request
+import os
+if os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+    # Running in Lambda environment
+    setup_database()
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
