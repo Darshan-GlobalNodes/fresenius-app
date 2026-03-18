@@ -140,6 +140,26 @@
       animation: fadeIn 0.5s ease-out;
     }
 
+    .btn-switch-persona {
+      background: rgba(255,255,255,.2);
+      border: 1.5px solid rgba(255,255,255,.4);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .btn-switch-persona:hover {
+      background: rgba(255,255,255,.35);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.8); }
       to { opacity: 1; transform: scale(1); }
@@ -933,6 +953,209 @@
     #messages::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(135deg, var(--brand-dark) 0%, var(--accent) 100%);
     }
+
+    /* ── Persona Switcher Modal ──────────────────────────────────────────── */
+    #personaSwitcherModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,30,60,.55);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+    }
+
+    #personaSwitcherModal.open { display: flex; }
+
+    .persona-modal-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 2rem 1.75rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(124,58,237,.3), 0 0 0 1px rgba(255,255,255,0.2);
+      animation: slideUpModal 0.4s ease-out;
+    }
+
+    @keyframes slideUpModal {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .persona-modal-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3rem;
+    }
+
+    .persona-modal-card .sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .persona-role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .persona-role-option {
+      border: 2px solid var(--border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%);
+      border-radius: 14px;
+      padding: 0.85rem 0.5rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all .3s ease;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      box-shadow: 0 2px 8px rgba(124,58,237,0.08);
+    }
+
+    .persona-role-option .emoji {
+      font-size: 1.8rem;
+      display: block;
+      margin-bottom: 4px;
+      transition: transform 0.3s ease;
+    }
+
+    .persona-role-option:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: linear-gradient(135deg, var(--brand-light) 0%, rgba(249,115,22,0.1) 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(124,58,237,0.2);
+    }
+
+    .persona-role-option:hover .emoji {
+      transform: scale(1.15);
+    }
+
+    .persona-role-option.active {
+      border-color: var(--brand);
+      background: linear-gradient(135deg, var(--brand-light) 0%, rgba(249,115,22,0.15) 100%);
+      color: var(--brand-dark);
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(124,58,237,0.25);
+    }
+
+    .persona-patient-section {
+      display: none;
+      margin-bottom: 1.2rem;
+    }
+
+    .persona-patient-section.show { display: block; }
+
+    .persona-patient-section label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .persona-patient-input {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      transition: all .3s ease;
+    }
+
+    .persona-patient-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+    }
+
+    .persona-modal-actions {
+      display: flex;
+      gap: 0.7rem;
+      justify-content: flex-end;
+    }
+
+    .btn-persona-cancel, .btn-persona-confirm {
+      padding: 0.65rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+
+    .btn-persona-cancel {
+      background: var(--white);
+      border: 2px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-persona-cancel:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .btn-persona-confirm {
+      background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+      border: none;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(124,58,237,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-persona-confirm::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-persona-confirm:hover::before {
+      left: 100%;
+    }
+
+    .btn-persona-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(124,58,237,0.4);
+    }
+
+    .btn-persona-confirm:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .persona-error {
+      display: none;
+      background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+      border: 2px solid #fca5a5;
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.82rem;
+      color: #ef4444;
+      margin-bottom: 0.8rem;
+    }
+
+    .persona-error.show { display: block; }
   </style>
 </head>
 <body>
@@ -945,6 +1168,9 @@
     </div>
     <span class="brand-name">Fresenius AI</span>
     <span class="role-badge" id="roleBadge" style="display:none"></span>
+    <button class="btn-switch-persona" id="btnSwitchPersona" onclick="openPersonaSwitcher()" style="display:none" title="Switch role">
+      🔄 Switch Role
+    </button>
   </div>
   <div class="header-right">
     <div class="user-info">
@@ -1007,6 +1233,50 @@
     <div class="creds-footer">
       <button class="btn-cancel" onclick="closeCredsModal()">Cancel</button>
       <button class="btn-save-creds" id="saveCredsBtn" onclick="saveCredentials()">Update Credentials</button>
+    </div>
+  </div>
+</div>
+
+<!-- Persona Switcher Modal -->
+<div id="personaSwitcherModal">
+  <div class="persona-modal-card">
+    <h2>🔄 Switch Role</h2>
+    <p class="sub">Choose a different role to continue your session.</p>
+
+    <div class="persona-role-grid">
+      <div class="persona-role-option" data-role="patient" onclick="selectPersonaRole('patient')">
+        <span class="emoji">🧑‍🦽</span>
+        Patient
+      </div>
+      <div class="persona-role-option" data-role="doctor" onclick="selectPersonaRole('doctor')">
+        <span class="emoji">👨‍⚕️</span>
+        Doctor
+      </div>
+      <div class="persona-role-option" data-role="nurse" onclick="selectPersonaRole('nurse')">
+        <span class="emoji">👩‍⚕️</span>
+        Nurse
+      </div>
+    </div>
+
+    <div class="persona-patient-section" id="personaPatientSection">
+      <label>Patient ID</label>
+      <input
+        type="number"
+        id="personaPatientIdInput"
+        class="persona-patient-input"
+        placeholder="Enter patient number (1 – 112)"
+        min="1"
+        max="112"
+      />
+    </div>
+
+    <div class="persona-error" id="personaError"></div>
+
+    <div class="persona-modal-actions">
+      <button class="btn-persona-cancel" onclick="closePersonaSwitcher()">Cancel</button>
+      <button class="btn-persona-confirm" id="btnConfirmPersona" onclick="confirmPersonaSwitch()" disabled>
+        Switch Role
+      </button>
     </div>
   </div>
 </div>
@@ -1307,6 +1577,9 @@
     const badge = document.getElementById('roleBadge');
     badge.textContent = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1);
     badge.style.display = '';
+
+    // Show switch persona button
+    document.getElementById('btnSwitchPersona').style.display = '';
 
     // Update welcome + chips
     updateWelcome();
@@ -1644,6 +1917,171 @@
 
     loadUser();
     loadConfig();   // detects Bedrock mode and shows credential sections
+  });
+
+  // ── Persona Switcher Functions ────────────────────────────────────────────
+  let newSelectedRole = null;
+  let newPatientId = null;
+
+  function openPersonaSwitcher() {
+    if (!sessionId) return;
+
+    // Mark current role as active
+    document.querySelectorAll('.persona-role-option').forEach(opt => {
+      opt.classList.remove('active');
+      if (opt.dataset.role === selectedRole) {
+        opt.classList.add('active');
+      }
+    });
+
+    newSelectedRole = selectedRole;
+
+    // If current role is patient, show and populate patient ID
+    const patientSection = document.getElementById('personaPatientSection');
+    if (selectedRole === 'patient') {
+      patientSection.classList.add('show');
+    } else {
+      patientSection.classList.remove('show');
+    }
+
+    // Reset error
+    document.getElementById('personaError').classList.remove('show');
+    document.getElementById('personaError').textContent = '';
+
+    // Enable confirm button
+    document.getElementById('btnConfirmPersona').disabled = false;
+
+    // Show modal
+    document.getElementById('personaSwitcherModal').classList.add('open');
+  }
+
+  function closePersonaSwitcher() {
+    document.getElementById('personaSwitcherModal').classList.remove('open');
+    document.getElementById('personaPatientIdInput').value = '';
+    newSelectedRole = null;
+    newPatientId = null;
+  }
+
+  function selectPersonaRole(role) {
+    newSelectedRole = role;
+
+    // Update active state
+    document.querySelectorAll('.persona-role-option').forEach(opt => {
+      opt.classList.remove('active');
+      if (opt.dataset.role === role) {
+        opt.classList.add('active');
+      }
+    });
+
+    // Show/hide patient ID field
+    const patientSection = document.getElementById('personaPatientSection');
+    if (role === 'patient') {
+      patientSection.classList.add('show');
+    } else {
+      patientSection.classList.remove('show');
+    }
+
+    // Enable confirm button
+    document.getElementById('btnConfirmPersona').disabled = false;
+
+    // Clear error
+    document.getElementById('personaError').classList.remove('show');
+  }
+
+  async function confirmPersonaSwitch() {
+    if (!newSelectedRole) {
+      showPersonaError('Please select a role.');
+      return;
+    }
+
+    // Validate patient ID if switching to patient
+    if (newSelectedRole === 'patient') {
+      const pidInput = document.getElementById('personaPatientIdInput').value.trim();
+      if (!pidInput || isNaN(pidInput) || pidInput < 1 || pidInput > 112) {
+        showPersonaError('Please enter a valid Patient ID between 1 and 112.');
+        return;
+      }
+      newPatientId = pidInput;
+    }
+
+    const confirmBtn = document.getElementById('btnConfirmPersona');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Switching...';
+
+    try {
+      // Close existing WebSocket
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+
+      sessionId = null;
+
+      // Update role
+      selectedRole = newSelectedRole;
+
+      // Clear messages
+      const messagesContainer = document.getElementById('messages');
+      messagesContainer.innerHTML = '';
+
+      // Reconnect with new role
+      connectWebSocket(selectedRole, newPatientId);
+
+      // Wait for connection
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update role badge
+      const badge = document.getElementById('roleBadge');
+      badge.textContent = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1);
+
+      // Update welcome message
+      const welcome = document.createElement('div');
+      welcome.className = 'welcome';
+      welcome.id = 'welcomeMsg';
+      const roleDesc = selectedRole === 'patient' ? 'your care or treatment' :
+                       selectedRole === 'doctor' ? 'patient data or clinical topics' :
+                       'patient management or nursing education';
+      welcome.innerHTML = `
+        <div class="w-icon">💬</div>
+        <h3>How can I help you today?</h3>
+        <p>Ask me anything about ${roleDesc}.</p>
+        <div class="suggestion-chips" id="chips"></div>
+      `;
+      messagesContainer.appendChild(welcome);
+
+      // Update suggestion chips
+      updateWelcome();
+
+      // Close modal
+      closePersonaSwitcher();
+
+      // Show success toast
+      showToast(`✓ Switched to ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} role`);
+
+      // Show switch button
+      document.getElementById('btnSwitchPersona').style.display = '';
+
+    } catch (error) {
+      showPersonaError('Failed to switch role. Please try again.');
+      console.error('Persona switch error:', error);
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Switch Role';
+    }
+  }
+
+  function showPersonaError(msg) {
+    const errorEl = document.getElementById('personaError');
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+  }
+
+  // Close modal when clicking outside
+  document.addEventListener('click', (e) => {
+    const modal = document.getElementById('personaSwitcherModal');
+    if (e.target === modal) {
+      closePersonaSwitcher();
+    }
   });
 </script>
 </body>
