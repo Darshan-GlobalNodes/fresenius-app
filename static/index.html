@@ -272,6 +272,24 @@
       <p id="errorMsg">Access denied.</p>
     </div>
 
+    <!-- Access Key Login Form -->
+    <div id="keyLoginForm" style="display:none; margin-bottom: 1.2rem;">
+      <div style="margin-bottom: 0.8rem;">
+        <input type="text" id="accessKeyInput" placeholder="Access Key (email)"
+               style="width: 100%; padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; transition: border-color 0.3s;"
+               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <input type="password" id="secretKeyInput" placeholder="Secret Key"
+               style="width: 100%; padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; transition: border-color 0.3s;"
+               onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <button onclick="loginWithKeys()" id="btnKeyLogin"
+              style="width: 100%; padding: 0.85rem 1.25rem; background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%); border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 4px 20px rgba(124,58,237,0.3); position: relative; overflow: hidden; transition: all 0.3s;">
+        Sign In with Keys
+      </button>
+    </div>
+
     <a href="/auth/google" class="btn-google" id="signInBtn">
       <svg width="18" height="18" viewBox="0 0 48 48">
         <path fill="#EA4335" d="M24 9.5c3.3 0 5.9 1.1 8.1 2.9L38.5 6C34.5 2.3 29.6 0 24 0 14.6 0 6.7 5.5 2.9 13.5l7.5 5.8C12.5 13.2 17.8 9.5 24 9.5z"/>
@@ -281,6 +299,14 @@
       </svg>
       Continue with Google
     </a>
+
+    <div style="text-align: center; margin-top: 1rem;">
+      <button onclick="toggleLoginMethod()" id="toggleBtn"
+              style="background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-decoration: underline; transition: color 0.3s;"
+              onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--muted)'">
+        Use Access Key instead
+      </button>
+    </div>
 
     <p class="footer">
       Access is restricted to authorised personnel only.<br>
@@ -309,6 +335,93 @@
       // Clean URL
       window.history.replaceState({}, '', '/');
     }
+
+    // Toggle between Google and Access Key login
+    let isKeyMode = false;
+    function toggleLoginMethod() {
+      isKeyMode = !isKeyMode;
+      const keyForm = document.getElementById('keyLoginForm');
+      const googleBtn = document.getElementById('signInBtn');
+      const toggleBtn = document.getElementById('toggleBtn');
+
+      if (isKeyMode) {
+        keyForm.style.display = 'block';
+        googleBtn.style.display = 'none';
+        toggleBtn.textContent = 'Use Google instead';
+      } else {
+        keyForm.style.display = 'none';
+        googleBtn.style.display = 'flex';
+        toggleBtn.textContent = 'Use Access Key instead';
+      }
+    }
+
+    // Login with access/secret key
+    async function loginWithKeys() {
+      const accessKey = document.getElementById('accessKeyInput').value.trim();
+      const secretKey = document.getElementById('secretKeyInput').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      const errorMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('btnKeyLogin');
+
+      // Clear previous errors
+      errorBox.classList.remove('visible');
+
+      // Validate inputs
+      if (!accessKey || !secretKey) {
+        errorMsg.textContent = 'Please enter both access key and secret key.';
+        errorBox.classList.add('visible');
+        return;
+      }
+
+      // Disable button
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch('/auth/login-with-keys', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_key: accessKey,
+            secret_key: secretKey,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorMsg.textContent = data.detail || 'Invalid access key or secret key.';
+          errorBox.classList.add('visible');
+          btn.disabled = false;
+          btn.textContent = 'Sign In with Keys';
+          return;
+        }
+
+        // Set cookie and redirect
+        document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+        window.location.href = '/chat';
+
+      } catch (error) {
+        errorMsg.textContent = 'Network error. Please try again.';
+        errorBox.classList.add('visible');
+        btn.disabled = false;
+        btn.textContent = 'Sign In with Keys';
+      }
+    }
+
+    // Enter key support
+    document.addEventListener('DOMContentLoaded', () => {
+      const secretKeyInput = document.getElementById('secretKeyInput');
+      if (secretKeyInput) {
+        secretKeyInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            loginWithKeys();
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

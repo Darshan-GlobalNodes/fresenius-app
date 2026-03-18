@@ -1,7 +1,9 @@
 import os
+import json
 from datetime import datetime, timedelta
 from typing import Optional
 from urllib.parse import urlencode
+from pathlib import Path
 
 import httpx
 import jwt
@@ -72,3 +74,34 @@ def verify_token(token: str) -> Optional[dict]:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except Exception:
         return None
+
+
+# ── Access Key / Secret Key Authentication ───────────────────────────────────
+
+def load_grant_keys() -> dict:
+    """Load access key -> secret key mappings from data/grant.json"""
+    grant_file = Path(__file__).parent.parent / "data" / "grant.json"
+    try:
+        with open(grant_file, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def verify_access_key(access_key: str, secret_key: str) -> Optional[str]:
+    """
+    Verify access key and secret key against grant.json.
+    Returns the email (access_key) if valid, None otherwise.
+    """
+    grants = load_grant_keys()
+
+    # Access key should be an email
+    access_key = access_key.strip().lower()
+
+    # Check if access key exists and secret matches
+    if access_key in grants and grants[access_key] == secret_key.strip():
+        # Also verify the email is whitelisted
+        if access_key in WHITELISTED_EMAILS:
+            return access_key
+
+    return None

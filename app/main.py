@@ -19,6 +19,7 @@ from app.auth import (
     get_google_auth_url,
     get_user_info,
     verify_token,
+    verify_access_key,
 )
 from app.agent import create_session, run_agent, sessions, update_aws_credentials, get_aws_credentials
 from app.database import setup_database, engine, get_patient, get_patient_count
@@ -106,6 +107,41 @@ async def google_callback(request: Request, code: str = None, error: str = None)
 
     except Exception as exc:
         return RedirectResponse(url=f"/?error=auth_failed")
+
+
+@app.post("/auth/login-with-keys")
+async def login_with_keys(request: Request):
+    """Authenticate using access key (email) and secret key from grant.json"""
+    try:
+        body = await request.json()
+        access_key = body.get("access_key", "").strip()
+        secret_key = body.get("secret_key", "").strip()
+
+        if not access_key or not secret_key:
+            raise HTTPException(status_code=400, detail="Access key and secret key are required")
+
+        # Verify against grant.json
+        email = verify_access_key(access_key, secret_key)
+
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid access key or secret key")
+
+        # Create JWT token
+        jwt_token = create_access_token({
+            "email": email,
+            "name": email.split("@")[0].replace(".", " ").title(),
+            "picture": "",
+        })
+
+        return {
+            "access_token": jwt_token,
+            "email": email
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(exc)}")
 
 
 @app.get("/auth/logout")
