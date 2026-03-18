@@ -99,9 +99,9 @@ def get_llm():
         return BedrockChat(client=bedrock_client, model_id=model_id)
 
     from langchain_anthropic import ChatAnthropic
-    print(f"[llm] Using ChatAnthropic model {os.getenv('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')}")
+    print(f"[llm] Using ChatAnthropic model {os.getenv('ANTHROPIC_MODEL', 'claude-sonnet-4-20250514')}")
     return ChatAnthropic(
-        model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+        model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
         temperature=0,
     )
