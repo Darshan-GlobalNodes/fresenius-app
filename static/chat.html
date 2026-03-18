@@ -1369,6 +1369,7 @@
   let selectedRole = null;
   let isThinking = false;
   let llmProvider = 'anthropic';   // updated from /api/config on load
+  let needsCredentials = false;    // whether credentials input is required
   let setupCredsParsed = null;     // parsed creds from the setup textarea (Bedrock mode)
 
   const SUGGESTIONS = {
@@ -1407,15 +1408,22 @@
       if (!res.ok) return;
       const cfg = await res.json();
       llmProvider = cfg.llm_provider || 'anthropic';
+      needsCredentials = cfg.needs_credentials || false;
 
-      if (llmProvider === 'bedrock') {
+      // Only show credentials section if credentials are needed
+      if (llmProvider === 'bedrock' && needsCredentials) {
         // Show inline credentials section in setup modal
         document.getElementById('setupCredsSection').style.display = 'block';
         // Show header refresh button too
         document.getElementById('credsBtn').style.display = 'flex';
         // Check if creds already set (e.g. from .env)
         checkCredsStatus();
+      } else if (llmProvider === 'bedrock') {
+        // Bedrock configured with env vars, just show the refresh button
+        document.getElementById('credsBtn').style.display = 'flex';
+        checkCredsStatus();
       }
+      // For Anthropic with API key in .env, nothing extra needed
     } catch {}
   }
 
@@ -1476,8 +1484,8 @@
       }
     }
 
-    // If Bedrock mode, push credentials first (inline paste takes priority over header modal)
-    if (llmProvider === 'bedrock') {
+    // If Bedrock mode AND credentials are needed, push credentials first
+    if (llmProvider === 'bedrock' && needsCredentials) {
       const creds = setupCredsParsed;   // parsed from inline textarea
 
       if (creds && creds.key && creds.secret && creds.token) {
@@ -1499,7 +1507,7 @@
           return;
         }
       } else {
-        // No inline creds — check if they were already set via header modal or .env
+        // No inline creds — check if they were already set via header modal
         try {
           const r = await fetch('/api/aws-credentials/status');
           const d = await r.json();
@@ -1513,6 +1521,7 @@
         }
       }
     }
+    // If credentials are configured in .env (needsCredentials=false), skip validation
 
     document.getElementById('startBtn').disabled = true;
     document.getElementById('startBtn').textContent = 'Connecting…';
